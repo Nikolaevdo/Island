@@ -1,0 +1,11 @@
+package com.javarush.island.nikolaev.entity.organizms.animals.herbivores;
+
+import com.javarush.island.nikolaev.abstraction.annotations.Setting;
+import com.javarush.island.nikolaev.entity.organizms.Limit;
+
+@Setting(name = "Boar", icon = "\uD83D\uDC17", maxWeight = 400, maxCount = 50, maxSpeed = 2, maxFood = 50)
+
+public class Boar extends Herbivore {
+
+    public  Boar (String name, String icon, double weight, Limit limit) {super(name, icon, weight, limit);}
+}
