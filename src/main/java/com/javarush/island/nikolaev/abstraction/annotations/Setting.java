@@ -20,4 +20,6 @@ public @interface Setting {
 
     double maxFood();
 
+    int idFromTheSpecTable();
+
 }

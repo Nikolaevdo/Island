@@ -6,44 +6,79 @@ import com.javarush.island.nikolaev.abstraction.entity.Reproducible;
 import com.javarush.island.nikolaev.entity.map.Cell;
 import com.javarush.island.nikolaev.entity.organizms.Limit;
 import com.javarush.island.nikolaev.entity.organizms.Organism;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.lang.reflect.Type;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
+
 
 public abstract class Animal
         extends Organism
         implements Eating, Reproducible, Movable {
 
-    public Animal(String name, String icon, double weight, Limit limit) {
-        super(name, icon, weight, limit);
+
+
+    public Animal(String name, String icon, double weight, int idFromtheSpecTable, Limit limit) {
+        super(name, icon,weight,idFromtheSpecTable, limit);
     }
 
-    @Override
-    public void eat(Cell currentCell) {
 
+
+    //TODO Починить еду и прикрепить рацион из таблицы в Config
+
+    public boolean eat(Cell currentCell){
+        return true;
+    }
+    public void spawn(Cell cell) {
+        safeSpawnAnimal(cell);
     }
 
-    @Override
-    public Cell move(Cell startCell) {
-        int countCellForStep = this.getLimit().getMaxNumberOfCellMoves();
-        Cell last = findLastCell(startCell, countCellForStep);
-        removeMe(startCell);
-        addMe(last);
-        return last;
-    }
 
     @Override
-    public void spawn(Cell currentCell) {
-        Type type = this.getClass();
-        Map<Type, Set<Organism>> residents = currentCell.getResidents();
-        Set<Organism> organisms = residents.get(type);
-        if (Objects.nonNull(organisms) && organisms.contains(this) && organisms.size() > 2) {
-            bornClone(currentCell);
+    public boolean move(Cell startCell) {
+        int countStep = this.getLimit().getMaxSpeed();
+        Cell destinationCell = startCell.getNextCell(countStep);
+        return safeMove(startCell, destinationCell);
+    }
+
+    protected boolean safeMove(Cell source, Cell destination) {
+        if (safeAddTo(destination)) { //if was added
+            if (safePollFrom(source)) { //and after was extract
+                return true; //ok
+            } else {
+                safePollFrom(destination); //die or eaten
+            }
+        }
+        return false;
+    }
+
+    //TODO Починить еду и прикрепить рацион из таблицы в Config
+    private boolean safeSpawnAnimal(Cell cell) {
+        cell.getLock().lock();
+        try {
+            Set<Organism> organismSet = cell.getResidents().get(getType());
+            double maxWeight = getLimit().getMaxWeight();
+            if (getWeight() > maxWeight / 2 &&
+                    organismSet.contains(this) &&
+                    organismSet.size() >= 2 &&
+                    organismSet.size() < getLimit().getMaxCount()
+            ){
+                double childWeight = getWeight()/2;
+                setWeight(childWeight/2);
+                Organism clone = Organism.clone(this);
+                clone.setWeight(childWeight);
+                organismSet.add(clone);
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        finally {
+            cell.getLock().unlock();
         }
     }
 
@@ -66,20 +101,8 @@ public abstract class Animal
         return startCell;
     }
 
-    private void addMe(Cell cell) {
-        Type type = this.getClass();
-        safeModification(cell, c -> c.getResidents()
-                .computeIfAbsent(type,o->new HashSet<>())
-                .add(this));
-    }
 
-    private void removeMe(Cell cell) {
-        safeModification(cell, c -> c.getResidents().get(this.getClass()).remove(this));
-    }
 
-    private void bornClone(Cell cell) {
-        safeModification(cell, c -> c.getResidents().get(this.getClass()).add(clone(this)));
-    }
 
     private void safeModification(Cell cell, Consumer<Cell> operation) {
         cell.getLock().lock();

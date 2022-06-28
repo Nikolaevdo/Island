@@ -2,9 +2,9 @@ package com.javarush.island.nikolaev.util;
 
 import java.util.concurrent.ThreadLocalRandom;
 
-public class Probably {
+public class Randomizer {
 
-    private Probably() {
+    private Randomizer() {
     }
 
     public static int random(int min, int max) {

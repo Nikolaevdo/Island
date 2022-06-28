@@ -29,7 +29,7 @@ public class OrganismWorker implements Runnable {
                 if (Objects.nonNull(organisms)) {
                     for (Organism organism : organisms) {
                         if (organism instanceof Animal animal && !organisms.isEmpty()) {
-                            Cell destination = animal.move(cell);
+                            boolean destination = animal.move(cell);
                             System.out.print(cell + ">" + destination + " ");
                         } else {
                             prototype.spawn(cell);

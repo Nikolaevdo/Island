@@ -1,15 +1,13 @@
 package com.javarush.island.nikolaev.entity.map;
 
 import com.javarush.island.nikolaev.entity.organizms.Organism;
+import com.javarush.island.nikolaev.util.Randomizer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -32,5 +30,26 @@ public class Cell {
                 .map(Object::toString)
                 .collect(Collectors.joining());
     }
+
+    public Cell getNextCell(int countStep) {
+        Set<Cell> cellsVisited = new HashSet<>();
+        Cell currentCell = this;
+        while (cellsVisited.size() < countStep) {
+            List<Cell> nextCells = new ArrayList<>();
+            for (Cell cell : currentCell
+                    .nextCell) {
+                nextCells.add(cell);
+            }
+            int countDirections = nextCells.size();
+            if (countDirections > 0) {
+                int index = Randomizer.random(0, countDirections);
+                currentCell = nextCells.get(index);
+                cellsVisited.add(currentCell);
+            } else {
+                break;
+            }
+        }
+        return currentCell;
+}
 }
 

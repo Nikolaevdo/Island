@@ -1,9 +1,11 @@
 package com.javarush.island.nikolaev.entity.organizms;
 
 import com.javarush.island.nikolaev.abstraction.entity.Reproducible;
+import com.javarush.island.nikolaev.entity.map.Cell;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @SuppressWarnings("unused")
@@ -12,16 +14,22 @@ public abstract class Organism implements Reproducible, Cloneable {
 
     private final static AtomicLong idCounter = new AtomicLong(System.currentTimeMillis());
 
-    public Organism(String name, String icon, double weight, Limit limit) {
+    public Organism(String name, String icon, double weight,int idFromTheSpecTable, Limit limit) {
         this.name = name;
         this.icon = icon;
         this.weight = weight;
+        this.idFromTheSpecTable = idFromTheSpecTable;
         this.limit = limit;
+
     }
 
     private long id = idCounter.incrementAndGet();
     private final String name;
+
+    private final String type = this.getClass().getSimpleName();
     private final String icon;
+
+    private final int idFromTheSpecTable;
     @Setter
     private double weight;
     private final Limit limit;
@@ -49,5 +57,35 @@ public abstract class Organism implements Reproducible, Cloneable {
             throw new AssertionError(e);
         }
 
+    }
+    protected boolean safeMove(Cell source, Cell destination) {
+        if (safeAddTo(destination)) { //if was added
+            if (safePollFrom(source)) { //and after was extract
+                return true; //ok
+            } else {
+                safePollFrom(destination); //die or eaten
+            }
+        }
+        return false;
+    }
+    protected boolean safeAddTo(Cell cell) {
+        cell.getLock().lock();
+        try {
+            Set<Organism> set = cell.getResidents().get(getType());
+            int maxCount = getLimit().getMaxCount();
+            int size = set.size();
+            return size < maxCount && set.add(this);
+        } finally {
+            cell.getLock().unlock();
+        }
+
+    }
+    protected boolean safePollFrom(Cell cell) {
+        cell.getLock().lock();
+        try {
+            return cell.getResidents().get(getType()).remove(this);
+        } finally {
+            cell.getLock().unlock();
+        }
     }
 }

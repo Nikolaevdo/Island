@@ -10,12 +10,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-@Setting(name = "Трава", icon = "\u2F8B", maxWeight = 1, maxCount = 200, maxSpeed = 0, maxFood = 0)
+@Setting(name = "Grass", icon = "\u2F8B", maxWeight = 1, maxCount = 200, maxSpeed = 0, maxFood = 0, idFromTheSpecTable = 14)
 public class Grass extends Organism {
 
-    public Grass(String name, String icon, double weight, Limit limit) {
-        super(name, icon, weight, limit);
+    public Grass(String name, String icon, double weight, int idFromTheSpecTable,Limit limit) {
+        super(name, icon, weight,idFromTheSpecTable, limit);
     }
+
 
     @Override
     public void spawn(Cell currentCell) {

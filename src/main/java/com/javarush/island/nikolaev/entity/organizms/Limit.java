@@ -8,6 +8,6 @@ import lombok.RequiredArgsConstructor;
 public class Limit {
     private final double maxWeight;
     private final int maxCount;
-    private final int maxNumberOfCellMoves;
+    private final int maxSpeed;
     private final double maxFood;
 }
